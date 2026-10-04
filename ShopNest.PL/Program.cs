@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopNest.API.Extensions;
+using ShopNest.API.Factories;
 using ShopNest.Domain.Contracts;
 using ShopNest.Domain.Contracts.Initialization;
 using ShopNest.Domain.Contracts.RepositoryAbstraction;
@@ -15,7 +17,7 @@ using ShopNet.Services.ServicesImplementation;
 using StackExchange.Redis;
 using ExceptionHandlerMiddleware = ShopNest.API.CustomMiddlwares.ExceptionHandlerMiddleware;
 
-namespace ShopNest.PL
+namespace ShopNest.API
 {
     public class Program
     { //SEPERATION OF CONCERNS AND OPEN FOR EXTENSION CLOSE FOR MODIFICATION
@@ -41,6 +43,10 @@ namespace ShopNest.PL
             {
                 return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection")!);
             });
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
+            });
             //Imapper 15 License in production
             //builder.Services.AddAutoMapper(l => l.LicenseKey = "", typeof(ProductProfile).Assembly);
             //Imapper 14 No License Required in Production niether development
@@ -63,7 +69,7 @@ namespace ShopNest.PL
             //    {
             //        await next();
             //    }
-            //    catch (Exception ex)
+            //    catch (Exceptions ex)
             //    {
             //        Console.WriteLine(ex.Message);//Logg in Console
             //        context.Response.StatusCode = StatusCodes.Status500InternalServerError;

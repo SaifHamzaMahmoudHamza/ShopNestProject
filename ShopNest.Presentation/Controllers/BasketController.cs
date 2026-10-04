@@ -4,9 +4,8 @@ using ShopNest.Shared.DTOs.BasketDTOs;
 
 namespace ShopNest.Presentation.Controllers
 {
-    [ApiController]
-    [Route("api/[Controller]")]
-    public class BasketController(IBasketService basketService) : ControllerBase
+
+    public class BasketController(IBasketService basketService) : ApiBaseController
     {
         [HttpGet]
         public async Task<ActionResult<CustomerBasketDTO>> GetBasketAsync([FromQuery] string basketId)

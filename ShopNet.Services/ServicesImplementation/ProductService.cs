@@ -3,6 +3,7 @@ using ShopNest.Domain.Contracts;
 using ShopNest.Domain.Entities.ProductModule;
 using ShopNest.Services.Abstraction.Services;
 using ShopNest.Shared;
+using ShopNest.Shared.CommonResponses;
 using ShopNest.Shared.DTOs.ProductDTOs;
 using ShopNet.Services.Specifications.ProductSpecifications;
 
@@ -42,11 +43,12 @@ namespace ShopNet.Services.ServicesImplementation
             var Types = await unitOfWork.GetRepository<ProductType, int>().GetAllAsync();
             return mapper.Map<IEnumerable<ProductTypeDTO>>(Types);
         }
-        public async Task<ProductDTO>? GetProductByIdAsync(int id)
+        public async Task<Result<ProductDTO>>? GetProductByIdAsync(int id)
         {
             var Specs = new ProductWithTypeAndBrandSpecification(id);
             var Product = await unitOfWork.GetRepository<Product, int>().GetByIdAsync(Specs);
-
+            if (Product is null)
+                Error.NotFound("Product.NotFound", $"Product with Id {id} is Not Found");
             return mapper.Map<ProductDTO>(Product);
 
         }

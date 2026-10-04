@@ -6,9 +6,7 @@ using ShopNest.Shared.DTOs.ProductDTOs;
 
 namespace ShopNest.Presentation.Controllers
 {
-    [ApiController]
-    [Route("api/[Controller]")]
-    public class ProductsController(IProductService productService) : ControllerBase
+    public class ProductsController(IProductService productService) : ApiBaseController
     {
         #region GetAllWithRedis
         //GetALL
@@ -24,9 +22,8 @@ namespace ShopNest.Presentation.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDTO>> GetById([FromRoute] int id)
         {
-            //throw new Exception();
-            var product = await productService.GetProductByIdAsync(id)!;
-            return Ok(product);
+            var result = await productService.GetProductByIdAsync(id)!;
+            return HandleResult<ProductDTO>(result);
         }
         [HttpGet("brands")]
         public async Task<ActionResult<IEnumerable<ProductBrandDTO>>> GetAllBrands()
