@@ -8,6 +8,7 @@ using ShopNest.Domain.Contracts.RepositoryAbstraction;
 using ShopNest.Domain.Contracts.RepositoryAbstraction.BasketRepositoryAbstraction;
 using ShopNest.Presistence.Data.DataSeeding;
 using ShopNest.Presistence.Data.DbContexts;
+using ShopNest.Presistence.IdentityData.DbContext;
 using ShopNest.Presistence.Repositories;
 using ShopNest.Presistence.Repositories.BasketRepositories;
 using ShopNest.Services.Abstraction.ServiceAbstractions;
@@ -55,10 +56,15 @@ namespace ShopNest.API
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+            builder.Services.AddDbContext<StoreIdentityDbContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
+            });
             #endregion
             #region DI Container Building -> IService Provider
             var app = builder.Build();
-            await app.MigrateDataBaseAsync();
+            await app.MigrateDataBaseAsync<StoreIdentityDbContext>();
+            await app.MigrateDataBaseAsync<StoreDbContext>();
             await app.SeedDataAsync();
             #endregion
 
