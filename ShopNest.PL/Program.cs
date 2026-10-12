@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopNest.API.Extensions;
@@ -6,8 +7,10 @@ using ShopNest.Domain.Contracts;
 using ShopNest.Domain.Contracts.Initialization;
 using ShopNest.Domain.Contracts.RepositoryAbstraction;
 using ShopNest.Domain.Contracts.RepositoryAbstraction.BasketRepositoryAbstraction;
+using ShopNest.Domain.Entities.IdentityModule;
 using ShopNest.Presistence.Data.DataSeeding;
 using ShopNest.Presistence.Data.DbContexts;
+using ShopNest.Presistence.IdentityData.DataSeed;
 using ShopNest.Presistence.IdentityData.DbContext;
 using ShopNest.Presistence.Repositories;
 using ShopNest.Presistence.Repositories.BasketRepositories;
@@ -33,13 +36,16 @@ namespace ShopNest.API
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddScoped<IDataInitializer, DataInitializer>();
+            builder.Services.AddKeyedScoped<IDataInitializer, DataInitializer>("Default");
+            builder.Services.AddKeyedScoped<IDataInitializer, IdentityDataInitializer>("Identity");
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IBasketRepository, BasketRepository>();
             builder.Services.AddScoped<IBasketService, BasketService>();
             builder.Services.AddScoped<ICacheRepository, CacheRepository>();
             builder.Services.AddScoped<ICacheService, CacheService>();
+
             builder.Services.AddSingleton<IConnectionMultiplexer>(options =>
             {
                 return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection")!);
@@ -60,12 +66,29 @@ namespace ShopNest.API
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
             });
+            //Way 1 to add User Manager and Role Manager 
+            ///
+            /// Gives u all the managers (User,Role,SignIn)
+            ///
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                //To tell the clr which context is the Managers Responsible for editing in its tables 
+                .AddEntityFrameworkStores<StoreIdentityDbContext>();
+            //Way 2
+            ///
+            /// You can specify 
+            ///
+            //builder.Services.AddIdentityCore<ApplicationUser>()
+            //    .AddRoles<IdentityRole>()              
+            //To tell the clr which context is the Managers Responsible for editing in its tables 
+            //    .AddEntityFrameworkStores<StoreIdentityDbContext>(); 
+
             #endregion
             #region DI Container Building -> IService Provider
             var app = builder.Build();
             await app.MigrateDataBaseAsync<StoreIdentityDbContext>();
             await app.MigrateDataBaseAsync<StoreDbContext>();
             await app.SeedDataAsync();
+            await app.SeedIdentityDataAsync();
             #endregion
 
             #region Pipeline Configuration -> Middlewares Sequence

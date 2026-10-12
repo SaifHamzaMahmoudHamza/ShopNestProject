@@ -47,10 +47,18 @@ namespace ShopNest.API.Extensions
         public async static Task<WebApplication> SeedDataAsync(this WebApplication app)
         {
             await using var scope = app.Services.CreateAsyncScope();
-            var DataInitializer = scope.ServiceProvider.GetRequiredService<IDataInitializer>();
+            var DataInitializer = scope.ServiceProvider.GetRequiredKeyedService<IDataInitializer>(
+                "Default");
             await DataInitializer.InitializeAsync();
             return app;
-
+        }
+        public async static Task<WebApplication> SeedIdentityDataAsync(this WebApplication app)
+        {
+            await using var scope = app.Services.CreateAsyncScope();
+            var IdentityDataInitializer = scope.ServiceProvider.GetRequiredKeyedService<IDataInitializer>(
+                "Identity");
+            await IdentityDataInitializer.InitializeAsync();
+            return app;
         }
         //public static WebApplication ServiceRegistrations(string[] args)
         //{
