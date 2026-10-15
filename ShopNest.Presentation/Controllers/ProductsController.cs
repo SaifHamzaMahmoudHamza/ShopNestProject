@@ -12,7 +12,7 @@ namespace ShopNest.Presentation.Controllers
         #region GetAllWithRedis
         //GetALL
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "SuperAdmin")]
         [RedisCache(5)]
         public async Task<ActionResult<PaginatedResult<ProductDTO>>> GetAllProducts([FromQuery] ProuctQueryParams QueryParams)
         {

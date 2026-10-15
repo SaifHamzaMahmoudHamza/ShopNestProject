@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ShopNest.API.Extensions;
 using ShopNest.API.Factories;
 using ShopNest.Domain.Contracts;
@@ -19,6 +21,7 @@ using ShopNest.Services.Abstraction.Services;
 using ShopNet.Services.MappingProfiles.PictureResolve;
 using ShopNet.Services.ServicesImplementation;
 using StackExchange.Redis;
+using System.Text;
 using ExceptionHandlerMiddleware = ShopNest.API.CustomMiddlwares.ExceptionHandlerMiddleware;
 
 namespace ShopNest.API
@@ -45,6 +48,42 @@ namespace ShopNest.API
             builder.Services.AddScoped<IBasketService, BasketService>();
             builder.Services.AddScoped<ICacheRepository, CacheRepository>();
             builder.Services.AddScoped<ICacheService, CacheService>();
+            //Way 1 to add User Manager and Role Manager 
+            ///
+            /// Gives u all the managers (User,Role,SignIn)
+            ///
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                //To tell the clr which context is the Managers Responsible for editing in its tables 
+                .AddEntityFrameworkStores<StoreIdentityDbContext>();
+            //Way 2
+            ///
+            /// You can specify 
+            ///
+            //builder.Services.AddIdentityCore<ApplicationUser>()
+            //    .AddRoles<IdentityRole>()              
+            //To tell the clr which context is the Managers Responsible for editing in its tables 
+            //    .AddEntityFrameworkStores<StoreIdentityDbContext>(); 
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })//How to Validate the Token 
+            .AddJwtBearer(options =>
+            {
+                //Saves the token into the http request 
+                options.SaveToken = true;
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = builder.Configuration["JWTOptions:Issuer"],
+                    ValidAudience = builder.Configuration["JWTOptions:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTOptions:SecretKey"]!))
+                    //ValidateSignatureLast=true,
+                    //ValidateIssuerSigningKey=true,
+                };
+            });
 
             builder.Services.AddSingleton<IConnectionMultiplexer>(options =>
             {
@@ -66,21 +105,7 @@ namespace ShopNest.API
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
             });
-            //Way 1 to add User Manager and Role Manager 
-            ///
-            /// Gives u all the managers (User,Role,SignIn)
-            ///
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                //To tell the clr which context is the Managers Responsible for editing in its tables 
-                .AddEntityFrameworkStores<StoreIdentityDbContext>();
-            //Way 2
-            ///
-            /// You can specify 
-            ///
-            //builder.Services.AddIdentityCore<ApplicationUser>()
-            //    .AddRoles<IdentityRole>()              
-            //To tell the clr which context is the Managers Responsible for editing in its tables 
-            //    .AddEntityFrameworkStores<StoreIdentityDbContext>(); 
+
 
             #endregion
             #region DI Container Building -> IService Provider
@@ -120,8 +145,8 @@ namespace ShopNest.API
             app.UseStaticFiles();
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
             #endregion
