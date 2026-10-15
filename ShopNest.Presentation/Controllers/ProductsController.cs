@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ShopNest.Presentation.Attributes;
 using ShopNest.Services.Abstraction.Services;
 using ShopNest.Shared;
@@ -11,6 +12,7 @@ namespace ShopNest.Presentation.Controllers
         #region GetAllWithRedis
         //GetALL
         [HttpGet]
+        [Authorize]
         [RedisCache(5)]
         public async Task<ActionResult<PaginatedResult<ProductDTO>>> GetAllProducts([FromQuery] ProuctQueryParams QueryParams)
         {
