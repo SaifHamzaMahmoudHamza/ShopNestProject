@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ShopNest.Shared.DTOs.AuthenticationIdentityDTOS;
+using System.Security.Claims;
 
 namespace ShopNest.Presentation.Controllers
 {
@@ -16,6 +18,23 @@ namespace ShopNest.Presentation.Controllers
         {
             var result = await authenticationService.RegisterAsync(registerDTO);
             return HandleResult(result);
+        }
+
+        [HttpGet("emailExists")]
+        public async Task<ActionResult<bool>> CheckEmail(string Email)
+        {
+            var result = await authenticationService.EmailExistsAsync(Email);
+            return Ok(result);
+        }
+
+
+        [Authorize]
+        [HttpGet("CurrentUser")]
+        public async Task<ActionResult<UserDTO>> CurrentUser()
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var Result = await authenticationService.GetUserByEmailAsync(email!);
+            return HandleResult(Result);
         }
     }
 }

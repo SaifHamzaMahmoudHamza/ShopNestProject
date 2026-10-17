@@ -13,6 +13,24 @@ namespace ShopNet.Services.ServicesImplementation
 {
     public class AuthenticationService(UserManager<ApplicationUser> userManager, IConfiguration configuration) : IAuthenticationService
     {
+        public async Task<bool> EmailExistsAsync(string Email)
+        {
+            var User = await userManager.FindByEmailAsync(Email);
+            //if (User is null)
+            //    return false;
+            //return true;
+            return User != null;
+        }
+
+        public async Task<Result<UserDTO>> GetUserByEmailAsync(string Email)
+        {
+            var user = await userManager.FindByEmailAsync(Email);
+            if (user == null)
+                return Error.NotFound("User.NotFound", $"User With Email : {Email} is not found");
+            return new UserDTO(user.DisplayName, user.Email, await CreateTokenAsync(user));
+
+        }
+
         public async Task<Result<UserDTO>> LoginAsync(LoginDTO loginDTO)
         {
             var user = await userManager.FindByEmailAsync(loginDTO.Email);

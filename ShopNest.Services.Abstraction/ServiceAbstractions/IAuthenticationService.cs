@@ -9,5 +9,9 @@ namespace ShopNest.Services.Abstraction.ServiceAbstractions
         Task<Result<UserDTO>> RegisterAsync(RegisterDTO registerDTO);
         //takes Email and Password an returns Token ,DisplayName ,Email
         Task<Result<UserDTO>> LoginAsync(LoginDTO loginDTO);
+        //Check Email
+        Task<bool> EmailExistsAsync(string Email);
+        //Get User By Email
+        Task<Result<UserDTO>> GetUserByEmailAsync(string Email);
     }
 }
