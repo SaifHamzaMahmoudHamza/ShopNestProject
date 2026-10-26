@@ -1,5 +1,6 @@
 ﻿using ShopNest.Domain.Contracts.Initialization;
 using ShopNest.Domain.Entities;
+using ShopNest.Domain.Entities.OrderModule;
 using ShopNest.Presistence.Data.DbContexts;
 using System.Text.Json;
 namespace ShopNest.Presistence.Data.DataSeeding
@@ -13,24 +14,24 @@ namespace ShopNest.Presistence.Data.DataSeeding
                 var HasProducts = await storeDbContext.Products.AnyAsync();
                 var HasBrands = await storeDbContext.ProductBrands.AnyAsync();
                 var HasTypes = await storeDbContext.ProductTypes.AnyAsync();
-                if (HasBrands && HasProducts && HasTypes)
+                var HasDelivery = await storeDbContext.DeliveryMethods.AnyAsync();
+                if (HasBrands && HasProducts && HasTypes && HasDelivery)
                     return;
                 if (!HasBrands)
-                {
                     await SeedDataFromJson<ProductBrand, int>("brands.json", storeDbContext.ProductBrands);
-                }
+
                 if (!HasTypes)
-                {
                     await SeedDataFromJson<ProductType, int>("types.json", storeDbContext.ProductTypes);
 
-                }
                 await storeDbContext.SaveChangesAsync();
+
                 if (!HasProducts)
-                {
                     await SeedDataFromJson<Product, int>("products.json", storeDbContext.Products);
 
-                }
+                if (!HasDelivery)
+                    await SeedDataFromJson<DeliveryMethod, int>("delivery.json", storeDbContext.DeliveryMethods);
                 await storeDbContext.SaveChangesAsync();
+
             }
             catch (Exception ex)
             {
